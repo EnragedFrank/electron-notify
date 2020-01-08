@@ -456,7 +456,6 @@ function getWindow() {
       windowProperties.width = config.width
       windowProperties.height = config.height
       notificationWindow = new BrowserWindow(windowProperties)
-      notificationWindow.
       notificationWindow.setVisibleOnAllWorkspaces(true)
       notificationWindow.loadURL(getTemplatePath())
       notificationWindow.webContents.on('did-finish-load', function() {
