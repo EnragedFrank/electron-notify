@@ -1,5 +1,6 @@
 'use strict'
 
+const _ = require('lodash')
 const path = require('path')
 const async = require('async')
 const electron = require('electron')
@@ -122,7 +123,7 @@ let config = {
 }
 
 function setConfig(customConfig) {
-  config = Object.assign(config, customConfig)
+  config = _.defaults(customConfig, config)
   calcDimensions()
 }
 
@@ -233,7 +234,9 @@ function showNotification(notificationObj) {
       getWindow().then(function(notificationWindow) {
         // Move window to position
         calcInsertPos()
-        notificationWindow.setPosition(nextInsertPos.x, nextInsertPos.y)
+        var temp = Math.round(nextInsertPos.x);
+        var temp2 = Math.round(nextInsertPos.y);
+        notificationWindow.setPosition(temp, temp2);
 
         // Add to activeNotifications
         activeNotifications.push(notificationWindow)
@@ -413,14 +416,16 @@ function moveNotificationAnimation(i, done) {
   let step = (newY - startY) / config.animationSteps
   let curStep = 1
   let animationInterval = setInterval(function() {
+    var temp = Math.round(config.firstPos.x);
+    var temp2 = Math.round(startY + curStep * step);
     // Abort condition
     if (curStep === config.animationSteps) {
-      notificationWindow.setPosition(config.firstPos.x, newY)
+      notificationWindow.setPosition(temp, newY)
       clearInterval(animationInterval)
       return done(null, 'done')
     }
     // Move one step down
-    notificationWindow.setPosition(config.firstPos.x, Math.trunc(startY + curStep * step))
+    notificationWindow.setPosition(temp, temp2);
     curStep++
   }, config.animationStepMs)
 }
@@ -451,6 +456,7 @@ function getWindow() {
       windowProperties.width = config.width
       windowProperties.height = config.height
       notificationWindow = new BrowserWindow(windowProperties)
+      notificationWindow.
       notificationWindow.setVisibleOnAllWorkspaces(true)
       notificationWindow.loadURL(getTemplatePath())
       notificationWindow.webContents.on('did-finish-load', function() {
@@ -465,8 +471,12 @@ function getWindow() {
 function closeAll() {
   // Clear out animation Queue and close windows
   animationQueue.clear()
-  activeNotifications.forEach(window => window.close())
-  inactiveWindows.forEach(window => window.close())
+  _.forEach(activeNotifications, function(window) {
+    window.close()
+  })
+  _.forEach(inactiveWindows, function(window) {
+    window.close()
+  })
   // Reset certain vars
   nextInsertPos = {}
   activeNotifications = []
